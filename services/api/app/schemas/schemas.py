@@ -223,7 +223,12 @@ class WebOtpVerify(BaseModel):
     @field_validator("otp")
     @classmethod
     def _normalize_otp(cls, v: str) -> str:
+        import os
         v = (v or "").strip()
+        # Allow the test bypass code through without the 6-digit constraint.
+        test_code = os.environ.get("TEST_OTP_CODE", "")
+        if test_code and v == test_code:
+            return v
         if not v.isdigit() or len(v) != 6:
             raise ValueError("OTP must be 6 digits.")
         return v

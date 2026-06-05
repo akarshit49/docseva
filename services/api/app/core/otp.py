@@ -70,7 +70,18 @@ class OtpStore:
         return otp
 
     def verify(self, email: str, otp: str) -> bool:
-        """Return True if `otp` matches the stored hash. Single-use."""
+        """Return True if `otp` matches the stored hash. Single-use.
+
+        If TEST_OTP_CODE is set in the environment, that code bypasses the
+        normal OTP check for any email — useful for sharing with beta testers
+        who can't receive email on the server. Remove from .env in production.
+        """
+        import os
+        test_code = os.environ.get("TEST_OTP_CODE", "")
+        if test_code and otp.strip() == test_code.strip():
+            logger.info("OTP bypass used for %s (TEST_OTP_CODE match)", email)
+            return True
+
         email_l = email.lower()
         if self._too_many_attempts(email_l):
             return False
