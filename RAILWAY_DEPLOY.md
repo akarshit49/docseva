@@ -13,16 +13,18 @@ Open Terminal on your Mac and run this **twice** to generate two unique secret s
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
+
+
 Save both outputs — you'll use them as:
-- **SECRET_1** → `API_SECRET_KEY` (used by API + Web)
-- **SECRET_2** → `MINIO_SECRET_KEY` / `MINIO_ROOT_PASSWORD` (used by MinIO + all services that access files)
+- **SECRET_1** → `API_SECRET_KEY` (used by API + Web).  beaf0f2452aed30dc95c6939c157c43d829cf06a21d62a404fd9d9f82751e620
+- **SECRET_2** → `MINIO_SECRET_KEY` / `MINIO_ROOT_PASSWORD` (used by MinIO + all services that access files).   1c395360b01fe28fad5c4cf2e9d24bd6e3b004073fb0a7f7cf31e65b00d5d284
 
 Also generate one more for the bot token:
 ```bash
 python3 -c "import secrets; print(secrets.token_hex(16))"
 ```
 - **SECRET_3** → `API_BOT_TOKEN` / `WA_API_BOT_TOKEN`
-
+5bb14dcfd19f8c13d3725febfe30d270
 ---
 
 ## STEP 1 — Create Railway account
@@ -72,18 +74,22 @@ MinIO stores all your uploaded documents and generated PDFs.
 3. Click **"Add Service"**
 4. Click the MinIO service → **"Settings"** tab:
    - Change service name to: `minio`
-   - Scroll to **"Custom Start Command"** → paste:
+   - Scroll to **"Custom Start Command"** → paste the FULL command including `minio`:
      ```
-     server /data --console-address ":9001"
+     minio server /data --console-address ":9001"
      ```
-5. Click the MinIO service → **"Variables"** tab → add these (replace values):
+   > ⚠️ Do NOT omit the word `minio` at the start — Railway will fail with
+   > "executable 'server' could not be found" if you do.
+5. Still in **"Settings"** → scroll to **"Networking"** section:
+   - Under **"Private Networking"**: set port to `9000`
+   - Under **"Public Networking"**: click **"Generate Domain"** — copy the URL.
+     It looks like: `minio-production-xxxx.up.railway.app`
+     **Save this URL** — you'll need it as `MINIO_PUBLIC_ENDPOINT` in later steps.
+6. Click the MinIO service → **"Variables"** tab → add these (replace values):
    ```
    MINIO_ROOT_USER=minioadmin
    MINIO_ROOT_PASSWORD=SECRET_2_from_above
    ```
-6. Click **"Networking"** tab → **"Generate Domain"** — copy the URL Railway gives you.
-   It looks like: `minio-production-xxxx.up.railway.app`
-   **Save this URL** — you'll need it in later steps as `MINIO_PUBLIC_ENDPOINT`.
 7. Click **"Volumes"** tab → **"Add Volume"**:
    - Mount path: `/data`
    - This makes your files survive Railway restarts.
