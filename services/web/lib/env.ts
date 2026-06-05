@@ -15,4 +15,7 @@ export const env = {
   // so a stolen cookie has a tighter blast radius.
   cookieMaxAgeSeconds: 60 * 60 * 24 * 7,
   isProduction: process.env.NODE_ENV === 'production',
+  // Set COOKIE_SECURE=false in .env when running behind HTTP (no TLS).
+  // Defaults to true in production so Safari doesn't drop the session cookie.
+  secureCookie: process.env.COOKIE_SECURE !== 'false',
 } as const

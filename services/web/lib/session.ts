@@ -26,7 +26,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   sameSite: 'lax' as const,
   path: '/',
-  secure: env.isProduction,
+  secure: env.secureCookie,
   maxAge: env.cookieMaxAgeSeconds,
 }
 
