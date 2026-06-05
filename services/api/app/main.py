@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -95,10 +96,15 @@ async def startup() -> None:
         logger.info("MinIO buckets ready")
     except Exception as exc:
         logger.warning("MinIO not ready yet: %s", exc)
-    # Kick off the bg-remove model warmup without blocking startup.
-    task = asyncio.create_task(_warmup_rembg())
-    _BACKGROUND_TASKS.add(task)
-    task.add_done_callback(_BACKGROUND_TASKS.discard)
+    # rembg warmup disabled on production to prevent OOM on small droplets.
+    # The model loads on first actual bg_remove request (~5s with cached volume).
+    # Re-enable by setting REMBG_WARMUP=true in .env on a 4GB+ server.
+    if os.environ.get("REMBG_WARMUP", "").lower() == "true":
+        task = asyncio.create_task(_warmup_rembg())
+        _BACKGROUND_TASKS.add(task)
+        task.add_done_callback(_BACKGROUND_TASKS.discard)
+    else:
+        logger.info("rembg warmup skipped (set REMBG_WARMUP=true to enable)")
 
 
 @app.on_event("shutdown")
