@@ -26,6 +26,7 @@ python3 -c "import secrets; print(secrets.token_hex(16))"
 - **SECRET_3** → `API_BOT_TOKEN` / `WA_API_BOT_TOKEN`
 5bb14dcfd19f8c13d3725febfe30d270
 ---
+MINIO_PUBLIC_ENDPOINT : minio-production-ac3d.up.railway.app
 
 ## STEP 1 — Create Railway account
 
