@@ -13,7 +13,7 @@ const TIERS = [
     price: '₹0',
     cadence: '/month',
     docs: '10 documents / month',
-    cta: { label: 'Start free', href: '/login' },
+    cta: { label: 'Start free', href: '/api/auth/guest-login' },
     primary: false,
     bullets: [
       'Sister Quotation',
@@ -28,7 +28,7 @@ const TIERS = [
     price: '₹499',
     cadence: '/month',
     docs: '100 documents / month',
-    cta: { label: 'Choose Starter', href: '/login' },
+    cta: { label: 'Choose Starter', href: '/api/auth/guest-login' },
     primary: true,
     bullets: [
       'Everything in Free',
@@ -43,7 +43,7 @@ const TIERS = [
     price: '₹1,499',
     cadence: '/month',
     docs: '500 documents / month',
-    cta: { label: 'Choose Pro', href: '/login' },
+    cta: { label: 'Choose Pro', href: '/api/auth/guest-login' },
     primary: false,
     bullets: [
       'Everything in Starter',
@@ -63,7 +63,7 @@ export default function PricingPage() {
           <Link href="/">
             <Logo />
           </Link>
-          <Link href="/login">
+          <Link href="/api/auth/guest-login" prefetch={false}>
             <Button size="sm">Sign in</Button>
           </Link>
         </div>

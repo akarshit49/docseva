@@ -25,12 +25,12 @@ export default function LandingPage() {
             <Link href="/pricing" className="hidden text-sm text-ink-700 hover:text-ink-900 sm:inline">
               Pricing
             </Link>
-            <Link href="/login">
+            <Link href="/api/auth/guest-login" prefetch={false}>
               <Button variant="ghost" size="sm">
                 Sign in
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="/api/auth/guest-login" prefetch={false}>
               <Button size="sm">Get started</Button>
             </Link>
           </nav>
@@ -55,7 +55,7 @@ export default function LandingPage() {
               tender format. No copy-paste. No re-typing.
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Link href="/login">
+              <Link href="/api/auth/guest-login" prefetch={false}>
                 <Button size="lg">
                   Try it free
                   <ArrowRight className="h-4 w-4" aria-hidden />
