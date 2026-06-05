@@ -54,6 +54,7 @@ def _send_via_resend(msg: EmailMessage) -> None:
     key = os.environ.get("RESEND_API_KEY")
     if not key:
         logger.warning("EMAIL_PROVIDER=resend but RESEND_API_KEY is missing.")
+        _log_otp_fallback(msg)
         return
     sender = os.environ.get("EMAIL_FROM", "DocSeva <noreply@docseva.in>")
     resp = httpx.post(
@@ -70,6 +71,19 @@ def _send_via_resend(msg: EmailMessage) -> None:
     )
     if resp.status_code >= 400:
         logger.error("Resend send failed: %s %s", resp.status_code, resp.text)
+        # Fall back to logging the OTP so it's always usable during development
+        # or when Resend rejects the recipient (e.g. free-plan domain restrictions).
+        _log_otp_fallback(msg)
+
+
+def _log_otp_fallback(msg: EmailMessage) -> None:
+    """Always-available fallback: print OTP to Docker logs."""
+    logger.info(
+        "EMAIL[fallback] → to=%s subject=%s\n%s",
+        msg.to,
+        msg.subject,
+        msg.text,
+    )
 
 
 def _send_via_sendgrid(msg: EmailMessage) -> None:
