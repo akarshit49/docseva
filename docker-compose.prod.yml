@@ -1,0 +1,50 @@
+version: "3.9"
+
+# Production overrides — usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+
+  api:
+    restart: always
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: WARNING
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+
+  bot:
+    restart: always
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: WARNING
+
+  postgres:
+    restart: always
+    # In production: disable direct port exposure
+    ports: []
+
+  redis:
+    restart: always
+    ports: []
+
+  minio:
+    restart: always
+    # In production: hide console, expose only S3 API
+    ports:
+      - "9000:9000"
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - api

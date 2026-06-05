@@ -1,0 +1,187 @@
+# DocSeva — local development + MVP deployment
+# Usage:
+#   cp .env.example .env && nano .env   (fill in real values)
+#   docker-compose up --build
+#
+# Note: the `version:` field was removed because Docker Compose v2+ ignores it
+# and emits a warning. The schema is implicit (v3.x compatible).
+
+services:
+
+  # ── Infrastructure ───────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-docseva}
+      POSTGRES_USER: ${POSTGRES_USER:-docseva}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docseva_secret_change_in_prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docseva}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin_secret_change_in_prod}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # MinIO Console (open http://localhost:9001 in browser)
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Run Alembic migrations once, then exit ────────────────────────────────────
+
+  migrate:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    env_file: .env
+    command: alembic upgrade head
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # ── Application services ─────────────────────────────────────────────────────
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    volumes:
+      #genai: Persist the rembg U-2-Net model (~170 MB) between container
+      # rebuilds so the bg-remove tool stays fast after the very first download.
+      - rembg_models:/root/.u2net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  bot:
+    build:
+      context: .
+      dockerfile: services/bot/Dockerfile
+    env_file: .env
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - bot_tmp:/tmp/docseva
+
+  #genai: Sprint 3 — Next.js web channel.
+  web:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      # The web service talks to the API over the internal docker network.
+      API_INTERNAL_URL: http://api:8000
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  #genai: Sprint 5 / WS-E — WhatsApp adapter (FastAPI webhook server).
+  bot-whatsapp:
+    build:
+      context: ./services/bot-whatsapp
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      # Talk to the API and Redis over the internal docker network.
+      WA_API_BASE_URL: http://api:8000
+      WA_REDIS_URL: redis://redis:6379/2
+      # Default to the in-memory mock so the service boots cleanly even
+      # without WATI/Gupshup credentials. Set WA_BSP_PROVIDER=wati in .env
+      # to flip to production once the WATI account is live.
+      WA_BSP_PROVIDER: ${WA_BSP_PROVIDER:-mock}
+    ports:
+      - "8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  #genai: Sprint 3 — nginx reverse proxy. Routes / → web, /api/v1 → api,
+  #       /whatsapp/* → bot-whatsapp (added in Sprint 5).
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      web:
+        condition: service_started
+      api:
+        condition: service_healthy
+      bot-whatsapp:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  bot_tmp:
+  rembg_models:

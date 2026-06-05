@@ -1,0 +1,12 @@
+# #genai: Sprint 5 / WS-E — minimal deps for the WhatsApp adapter.
+# Intentionally smaller than the Telegram bot because all heavy lifting
+# (parsing, rendering, storage) lives in the API service. This service is
+# a thin webhook -> conversation -> API client adapter.
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.4
+pydantic-settings==2.7.0
+httpx==0.28.1
+redis==5.2.1
+tenacity==9.0.0
+python-multipart==0.0.20

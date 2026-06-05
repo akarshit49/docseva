@@ -1,0 +1,33 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+sqlalchemy==2.0.36
+alembic==1.14.0
+asyncpg==0.30.0          # async PostgreSQL driver
+psycopg2-binary==2.9.10  # sync driver for Alembic
+redis[hiredis]==5.2.1
+boto3==1.35.76            # MinIO / S3
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.17
+pydantic==2.10.4
+pydantic-settings==2.7.0
+httpx==0.28.1
+python-dotenv==1.0.1
+Pillow==11.1.0
+#genai: Sprint 1 / WS-B — retry external calls (LLM, MinIO) with backoff
+tenacity>=8.2.0
+#genai: Sprint 2 / WS-C — processors moved into API need these
+openai==1.58.1
+python-docx==1.1.2
+docxtpl==0.19.1
+pypdf==5.1.0
+pdfplumber==0.11.4
+openpyxl==3.1.5
+xlrd==2.0.1
+fpdf2==2.8.1
+olefile==0.47
+#genai: Tools — watermark + catalog rely on Pillow; bg-remove uses rembg (U2-Net).
+#       rembg pulls in onnxruntime and adds ~600 MB to the API image, but the
+#       model downloads itself on first request so no asset bundling is needed.
+pillow-heif==0.21.0
+rembg==2.0.57

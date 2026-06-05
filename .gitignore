@@ -1,0 +1,57 @@
+# ── Secrets — NEVER commit these ───────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.cover
+
+# ── Node / Next.js ──────────────────────────────────────────────────────────
+node_modules/
+services/web/.next/
+services/web/out/
+services/web/.vercel/
+services/web/coverage/
+services/web/playwright-report/
+services/web/test-results/
+services/web/.playwright/
+
+# ── Docker local data ───────────────────────────────────────────────────────
+postgres_data/
+redis_data/
+minio_data/
+
+# ── OS / editor ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Load test artifacts ─────────────────────────────────────────────────────
+loadtests/results/
+
+# ── Misc ────────────────────────────────────────────────────────────────────
+*.log
+tmp/
+temp/

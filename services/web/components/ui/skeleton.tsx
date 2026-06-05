@@ -1,0 +1,13 @@
+//genai: Sprint 3 / WS-F — Skeleton primitive for loading states.
+import * as React from 'react'
+
+import { cn } from '@/lib/utils'
+
+export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn('animate-pulse rounded-md bg-ink-100', className)}
+      {...props}
+    />
+  )
+}

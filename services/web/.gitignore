@@ -1,0 +1,12 @@
+node_modules
+.next
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+
+# #genai: Sprint 6 — playwright artifacts + per-engineer fixture PDFs.
+playwright-report
+test-results
+tests/e2e/fixtures/*.pdf
+coverage
