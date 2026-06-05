@@ -1,0 +1,12 @@
+#genai: Railway deployment config for the FastAPI backend service.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Run database migrations automatically before every new deploy.
+preDeployCommand = "alembic upgrade head"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
