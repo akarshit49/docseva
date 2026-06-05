@@ -21,4 +21,5 @@ EXPOSE 8080
 # uvicorn pinned to a single worker — webhooks are stateless and the
 # conversation state lives in Redis, so add workers behind a load balancer
 # in production.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Use $PORT from Railway (falls back to 8080 for local Docker Compose).
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
